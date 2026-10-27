@@ -17,7 +17,7 @@ export default function Home() {
             Velma Detect
           </span>
           <div className="flex items-center gap-1">
-            <a className="hidden h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline-flex" href="https://docs.modulate.ai/get-started/deepfake" target="_blank" rel="noreferrer">Docs <ArrowUpRight className="size-3.5" /></a>
+            <a className="hidden h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline-flex" href="https://docs.modulate.ai/get-started/deepfake?utm_source=github&utm_medium=repo&utm_campaign=infrasity_m1_repo2" target="_blank" rel="noreferrer">Docs <ArrowUpRight className="size-3.5" /></a>
             <ThemeToggle />
           </div>
         </div>

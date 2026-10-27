@@ -29,6 +29,7 @@ The result screenshots use a clip made with the macOS text-to-speech voice, so t
 - [Batch or streaming](#batch-or-streaming)
 - [Limits and rate limiting](#limits-and-rate-limiting)
 - [Add sample clips](#add-sample-clips)
+- [Screenshots](#screenshots)
 - [Project structure](#project-structure)
 
 ## Get started in three steps
@@ -65,28 +66,29 @@ Other scripts: `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm build`, `pnpm start`
 ## How it works
 
 ```mermaid
-flowchart TD
+%%{init: {"flowchart": {"nodeSpacing": 24, "rankSpacing": 36, "padding": 6, "wrappingWidth": 260, "htmlLabels": true}, "themeVariables": {"fontSize": "13px"}}}%%
+flowchart LR
     classDef browser fill:#dbeafe,stroke:#2563eb,color:#0f172a
     classDef server fill:#e5e7eb,stroke:#4b5563,color:#0f172a
     classDef velma fill:#ede9fe,stroke:#7c3aed,color:#0f172a
 
-    A["<b>1. Browser</b><br/>Pick, drop or record audio"]:::browser
-    B["<b>2. Next.js route /api/detect</b><br/>Check file type and size (max 4 MB)<br/>Rate limit: 6 requests per minute per IP"]:::server
-    C["<b>3. Velma batch endpoint</b><br/>Trim edge silence, cut into 4 s windows<br/>Score each window: verdict + confidence"]:::velma
-    D["<b>4. Next.js route /api/detect</b><br/>Drop no-content windows<br/>Compute natural share, confidence and label"]:::server
-    E["<b>5. Browser</b><br/>Show verdict, timeline and window cards"]:::browser
+    A["<b>1. Browser</b><br/>pick, drop or record"]:::browser
+    B["<b>2. /api/detect</b><br/>validate, rate limit"]:::server
+    C["<b>3. Velma batch</b><br/>4 s windows, score each"]:::velma
+    D["<b>4. /api/detect</b><br/>summarise frames"]:::server
+    E["<b>5. Browser</b><br/>verdict + timeline"]:::browser
 
-    A -- "POST multipart field: file" --> B
-    B -- "POST upload_file<br/>X-API-Key added on the server" --> C
-    C -- "JSON frames" --> D
-    D -- "frames + summary" --> E
+    A -->|file| B
+    B -->|upload_file| C
+    C -->|frames| D
+    D -->|summary| E
 ```
 
-Blue steps run in the browser, grey steps on your server, purple steps at Velma. The browser never sees the API key and never talks to Velma directly.
+Blue steps run in the browser, grey steps on your server, purple steps at Velma. The server checks file type and size (max 4 MB) and applies a rate limit of 6 requests per minute per IP, adds the `X-API-Key` header, then drops no-content windows and computes the natural share, confidence and label. The browser never sees the API key and never talks to Velma directly.
 
-The route calls the batch endpoint documented at [docs.modulate.ai/api-reference/svd/batch](https://docs.modulate.ai/api-reference/svd/batch):
+The route calls the batch endpoint documented at [docs.modulate.ai/api-reference/svd/batch](https://docs.modulate.ai/api-reference/svd/batch?utm_source=github&utm_medium=repo&utm_campaign=infrasity_m1_repo2):
 
-- `POST https://platform.modulate.ai/api/velma-2-synthetic-voice-detection-batch`
+- [`POST https://platform.modulate.ai/api/velma-2-synthetic-voice-detection-batch`](https://platform.modulate.ai/api/velma-2-synthetic-voice-detection-batch?utm_source=github&utm_medium=repo&utm_campaign=infrasity_m1_repo2)
 - Header `X-API-Key`
 - Multipart field `upload_file`
 
@@ -119,7 +121,7 @@ flowchart LR
 
 The app shows one **window card** per frame (verdict, time range and confidence bar) and a **timeline** that lays the windows out in order. In the timeline each segment is as wide as its window, coloured by verdict, and brighter when Velma is more confident.
 
-Source: [Velma Deepfake Detection docs](https://docs.modulate.ai/get-started/deepfake).
+Source: [Velma Deepfake Detection docs](https://docs.modulate.ai/get-started/deepfake?utm_source=github&utm_medium=repo&utm_campaign=infrasity_m1_repo2).
 
 ## Metrics: natural, synthetic and confidence
 
@@ -173,7 +175,7 @@ Modulate does not publish a clip-level threshold and advises setting one against
 
 Change `LIKELY_REAL_MIN` and `LIKELY_SYNTHETIC_MAX` to suit your data. The label uses only the Natural share. Confidence does not move a clip between labels, it is shown so you can judge how firm each call is.
 
-Modulate publishes accuracy results for the model on the [Deepfake Detection benchmark page](https://docs.modulate.ai/benchmarks/deepfake-detection). This repo does not make accuracy claims of its own.
+Modulate publishes accuracy results for the model on the [Deepfake Detection benchmark page](https://docs.modulate.ai/benchmarks/deepfake-detection?utm_source=github&utm_medium=repo&utm_campaign=infrasity_m1_repo2). This repo does not make accuracy claims of its own.
 
 ## Batch or streaming
 
@@ -182,7 +184,7 @@ Velma offers both a batch endpoint and a WebSocket streaming endpoint. This star
 - The streaming endpoint takes the API key as a query parameter, so a browser connecting directly would expose the key.
 - Next.js route handlers on Vercel cannot hold a WebSocket open, so a server-side proxy needs a separate long-running service.
 
-If you need live scoring, run a small WebSocket relay on a host that supports it and keep the key there. The streaming reference is at [docs.modulate.ai/api-reference/svd/streaming](https://docs.modulate.ai/api-reference/svd/streaming).
+If you need live scoring, run a small WebSocket relay on a host that supports it and keep the key there. The streaming reference is at [docs.modulate.ai/api-reference/svd/streaming](https://docs.modulate.ai/api-reference/svd/streaming?utm_source=github&utm_medium=repo&utm_campaign=infrasity_m1_repo2).
 
 ## Limits and rate limiting
 
@@ -220,6 +222,19 @@ The sample picker reads `public/samples/manifest.json`. It ships as an empty arr
 
 Only add clips you recorded yourself or whose licence allows public redistribution. Keep them under 15 seconds.
 
+## Screenshots
+
+| Desktop | Mobile |
+|---|---|
+| ![Home, desktop](docs/screenshots/home-desktop-light.png) | ![Home, mobile](docs/screenshots/home-mobile-light.png) |
+
+The flow, from choosing a clip to the result list, and the error state for an unsupported file:
+
+![Step 1, choose a clip](docs/screenshots/step1-choose-ready.png)
+![Step 2, analysing](docs/screenshots/step2-analysing.png)
+![Result windows and the New clip pill](docs/screenshots/result-pill-above-footer.png)
+![Error, unsupported file](docs/screenshots/error-bad-file.png)
+
 ## Project structure
 
 ```text
@@ -249,7 +264,7 @@ deepfake-detection-starter/
 
 ## Links
 
-- [Velma Deepfake Detection docs](https://docs.modulate.ai/get-started/deepfake)
-- [Authentication and rate limits](https://docs.modulate.ai/guides/authentication)
+- [Velma Deepfake Detection docs](https://docs.modulate.ai/get-started/deepfake?utm_source=github&utm_medium=repo&utm_campaign=infrasity_m1_repo2)
+- [Authentication and rate limits](https://docs.modulate.ai/guides/authentication?utm_source=github&utm_medium=repo&utm_campaign=infrasity_m1_repo2)
 
 Released under the [MIT licence](LICENSE).
